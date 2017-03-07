@@ -7,14 +7,17 @@ Created on Jun 28, 2014
 @author: Robb
 '''
 
+'''import relevant files and libraries for use'''
 from game_tools import simplegui
 from game_tools import sprite
 import random
 import math
 
+'''initilaize the following values'''
 SCREEN_SHOT_FILE = None
 AUTO_SCREEN_SHOT = False
 
+'''initialize size of grid, standardized'''
 BRICK_H = 25
 BRICK_RATIO = 2.5 # to 1
 BRICK_SIZE = (int(BRICK_H*BRICK_RATIO),BRICK_H)
@@ -28,15 +31,18 @@ HEIGHT = GRID_HEIGHT*BRICK_SIZE[1]
 BACKGROUND_COLOR = 'Black'
 IMAGES_ON = False
 
+'''initliaze the ball and paddle, speeds and sizes'''
 BALL_SIZE = (0.5*BRICK_SIZE[0], 0.5*BRICK_SIZE[0])
 # BALL_SIZE = (1.5*BRICK_SIZE[0], 1.5*BRICK_SIZE[0])
 PADDLE_SIZE = (BRICK_SIZE[0]*3, 0.75*BRICK_SIZE[1])
 PADDLE_SPEED = 8
 ball_speed = 7
 
+'''determines how many spare balls are given and where they begin from'''
 SPARE_BALLS = 5
 SPARE_BALL_POS = [0, BRICK_SIZE[1]]
 
+'''values for stopping and starting the game'''
 game_over = False
 game_paused = False
 
@@ -45,12 +51,14 @@ ball = None
 paddle = None
 gutter = None
 
+'''initialize the player's starting level and score; could start at a higher level if wanted/a higher score'''
 level = 1
 score = 0
 multiplier = 1
 cnt = 0
 COUNT_FULL = 10
 
+'''stores the following information for use later'''
 image_infos = dict([(color,None) for color in simplegui.COLOR_PALETTE.keys() if color != BACKGROUND_COLOR])
 images = dict([])
 
@@ -58,24 +66,24 @@ control_state = dict([('left',False),('right',False)])
 
 def draw(canvas):
     '''Draws the board, bricks, paddle, and ball'''
-    global brick_rows, ball, paddle, game_over, cnt, multiplier, level, ball_speed
-    if not game_paused and not game_over:
+    global brick_rows, ball, paddle, game_over, cnt, multiplier, level, ball_speed  '''defines global variables'''
+    if not game_paused and not game_over:   '''if the game is in play'''
         cnt = (cnt + 1) % COUNT_FULL
         
-        if gutter and ball and ball.overlaps(gutter):
-            if len(spare_balls) > 0:
-                spare_balls.pop()
+        if gutter and ball and ball.overlaps(gutter):   '''if you lose the ball, a.k.a. you don't hit it with the paddle'''
+            if len(spare_balls) > 0:                    '''if you have spare balls, you are given a new one and your spare balls are depleted'''
+                spare_balls.pop()                       
                 ball = new_ball()
                 multiplier = 1
-            else:
+            else:                                       '''if you do not have any balls left, the game is over and terminated'''
                 game_over = True
                 ball = None
                 
-        if ball:
+        if ball:    '''if the ball is in play, keep tack of the score'''
             keep_score(paddle_bounce(paddle, ball), bricks_bounce(brick_rows, ball))
                 
             ball.update((WIDTH,HEIGHT))
-        if paddle:
+        if paddle:  '''if the paddle is in play, control it's speed'''
             if control_state['left']:
                 paddle.vel = (-PADDLE_SPEED,0)
             elif control_state['right']:
