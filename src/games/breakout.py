@@ -33,7 +33,7 @@ IMAGES_ON = False
 
 '''initliaze the ball and paddle, speeds and sizes'''
 BALL_SIZE = (0.5*BRICK_SIZE[0], 0.5*BRICK_SIZE[0])
-# BALL_SIZE = (1.5*BRICK_SIZE[0], 1.5*BRICK_SIZE[0])
+# BALL_SIZE = (1.5*BRICK_SIZE[0], 1.5*BRICK_SIZE[0]) '''option for different ball size'''
 PADDLE_SIZE = (BRICK_SIZE[0]*3, 0.75*BRICK_SIZE[1])
 PADDLE_SPEED = 8
 ball_speed = 7
@@ -93,35 +93,44 @@ def draw(canvas):
             
             paddle.update((WIDTH,HEIGHT))
     
+    '''draws the bricks'''
     for brick_row in brick_rows:
         for brick in brick_row:
             brick.draw(canvas)
     
+    '''if the paddle exists, draw it'''
     if paddle:
         paddle.draw(canvas)
-        
+    
+    '''if the ball exists, draw it'''
     if ball:
         ball.draw(canvas)
     
+    '''writes the level and the score to the playing grid, aligns them in the proper sapce'''
     canvas.draw_text(str(level),grid_to_continuous((GRID_WIDTH-0.5,1)),30,'White',align=('right','middle'))
     canvas.draw_text(str(score),grid_to_continuous((GRID_WIDTH-1,1)),30,'White',align=('right','middle'))
     
+    '''if there are spare balls, darw them'''
     for spare in spare_balls:
         spare.draw(canvas)
     
+    '''draws point sprites and initializes them in the playing grid'''
     remove_point_sprites = []
     for point_sprite in point_sprites:
         point_sprite.update()
         point_sprite.draw(canvas)
-        if point_sprite.life == 0:
+        if point_sprite.life == 0:  '''if the amount of point sprites is 0, we ready them to be removed'''
             remove_point_sprites.append(point_sprite)
     for point_sprite in remove_point_sprites:
         point_sprites.remove(point_sprite)
-        
+    
+    '''if the player gets game over, display a message on the screen saying so'''
     if game_over:
         canvas.draw_rect([0.25*WIDTH,0.5*HEIGHT-40],[0.5*WIDTH,2*40],2,'Black','Gray')
         canvas.draw_text('GAME OVER',[WIDTH/2,HEIGHT/2],40,'White',align=('center','middle'))
-        
+    
+    '''if the following conditions are met, new bricks are added the the players paddle sized is increase by 0.75'''
+    '''the level also increase by one and the ball speed does as well, another spare ball is also added to the game'''
     if sum([len(brick_row) for brick_row in brick_rows]) == 0 and continuous_to_grid(ball.pos)[1]>NUM_ROWS+TOP_GAP+1:
         brick_rows = new_bricks()
         paddle = new_paddle(paddle.pos, [paddle.size[0]*0.75,paddle.size[1]])
@@ -138,13 +147,16 @@ def new_game():
     global brick_rows, paddle, ball, spare_balls, gutter, game_over, point_sprites, score, level
     game_over = False
     
+    '''reinitializes the score and levels'''
     score = 0
     level = 1
     
+    '''new bricks are added, a new ball is created and spare balls are also created'''
     brick_rows = new_bricks()
     ball = new_ball()
     spare_balls = [make_spare_ball(i) for i in range(SPARE_BALLS)]
     
+    '''paddle is initiated as well as the gutter'''
     paddle = new_paddle(grid_to_continuous([GRID_WIDTH/2, GRID_HEIGHT - 2]))
     gutter = sprite.Sprite(pos=(WIDTH/2,HEIGHT),size=(WIDTH,2))
     
@@ -156,6 +168,8 @@ def new_bricks():
 
 def new_ball():
     '''Returns a new ball'''
+    '''initializes a new ball using previously defined variables'''
+    '''initializes its name, position, speed, size, colour, image (if necessary), how it's drawn and how it's updated'''
     return sprite.Sprite(name='Ball',
                          pos=grid_to_continuous([GRID_WIDTH/2, GRID_HEIGHT - (GRID_HEIGHT - NUM_ROWS - TOP_GAP)/2]),
                          vel=random_vel(ball_speed,[-45,-135]),
@@ -167,6 +181,8 @@ def new_ball():
 
 def new_paddle(paddle_pos, paddle_size = PADDLE_SIZE):
     '''Makes a paddle'''
+    '''initializes a new paddle using previously defined variables'''
+    '''initializes its name, position, size, colour, image (if necessary), and how it's updated'''
     return sprite.Sprite(name='Paddle',
                          pos=paddle_pos,
                          size=paddle_size,
@@ -176,6 +192,8 @@ def new_paddle(paddle_pos, paddle_size = PADDLE_SIZE):
 
 def make_spare_ball(ball_number):
     '''Adds a spare ball'''
+    '''adds a spare ball using previously defined variables'''
+    '''initializes its name, position, size, colour, image (if necessary), and how it's drawn'''
     return sprite.Sprite(name='SpareBall',
                          pos=(SPARE_BALL_POS[0]+(ball_number+1)*BALL_SIZE[0],SPARE_BALL_POS[1]),
                          size=BALL_SIZE,
@@ -185,6 +203,8 @@ def make_spare_ball(ball_number):
     
 def make_brick(grid_pos, color):
     '''Makes a brick'''
+    '''initializes a new brick using previously defined variables'''
+    '''initializes its name, position, size, colour, its line width, and its image'''
     return sprite.Sprite(name=color,
                          pos=grid_to_continuous(grid_pos),
                          size=BRICK_SIZE,
@@ -194,6 +214,8 @@ def make_brick(grid_pos, color):
 
 def add_point_sprite(points, brick):
     '''Adds a point sprite to the world'''
+    '''initializes a new sprite using previously defined variables'''
+    '''initializes its name, position,velocity, size, colour, its life, and how it's drawn'''
     point_sprites.append(sprite.Sprite(name=str(points),
                                        pos=brick.pos,
                                        vel=[0,2],
@@ -216,12 +238,12 @@ def random_color():
     
 def random_vel(speed,angle_range=[0,360]):
     '''Returns a random velocity with a magnitude of speed'''
-    ang = random.uniform(angle_range[0]*math.pi/180.,angle_range[1]*math.pi/180.)
+    ang = random.uniform(angle_range[0]*math.pi/180.,angle_range[1]*math.pi/180.)   '''generates random angle so that a velocity may be returned'''
     return [speed*math.cos(ang), speed*math.sin(ang)]
 
 def paddle_bounce(paddle, ball):
     '''Bounces the ball off the paddle'''
-    if paddle and ball.overlaps(paddle):
+    if paddle and ball.overlaps(paddle):    '''if the ball and paddle positions overlap in the grid, change the balls velocity'''
         gap = ball.gap_between(paddle)
         x_bounce = -1 if gap[0] > gap[1] else 1
         ball.vel = (x_bounce*ball.vel[0]+0.1*paddle.vel[0], -abs(ball.vel[1]))
@@ -239,7 +261,8 @@ def bricks_bounce(brick_rows, ball):
     remove_brick = None
     for brick_row in brick_rows[row_low:row_high]:
         for brick in brick_row:
-            if ball.overlaps(brick):
+            if ball.overlaps(brick):        '''if the ball position overlaps that of a brick'''
+                '''change the balls velocity and remove the brick it overlapped'''
                 gap = ball.gap_between(brick)
                 rel_vel = ball.rel_velocity(brick)
 #                 if gap[0] < gap[1]:
@@ -263,9 +286,9 @@ def keep_score(paddle_hit, hit_brick):
     '''Keeps track of the score'''
     global multiplier, score
     
-    if paddle_hit:
+    if paddle_hit:  '''if the paddle is hit, the score is not affected'''
         multiplier = 1
-    if hit_brick:
+    if hit_brick:   '''if a brick is hit, add 10*multipler to the score and increase the multiplier by 1'''
         points = 10*multiplier
         multiplier += 1
         add_point_sprite(points, hit_brick)
@@ -289,7 +312,7 @@ def key_up(key):
 def pause():
     '''Pauses the game'''
     global game_paused
-    game_paused = not game_paused
+    game_paused = not game_paused      '''will also unpause because of the not'''
     
 def setup():
     '''Setup the frame and event handlers'''
@@ -314,6 +337,7 @@ def setup():
     
     return frame
 
+'''begins the game'''
 if __name__ == '__main__':
     setup()
     
